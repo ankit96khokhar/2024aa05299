@@ -39,11 +39,31 @@ DOCUMENTS = {
         "Kirana shop, GST not registered",
         "Existing EMI 5000",
     ],
+    "hindi_loan_note": [
+        "हिंदी ऋण आवेदन नमूना",
+        "नाम: रोहन शर्मा",
+        "मासिक आय: 45000",
+        "ऋण राशि: 300000",
+        "व्यवसाय: किराना दुकान",
+        "GST पंजीकृत: नहीं",
+    ],
+    "hinglish_loan_note": [
+        "HINGLISH LOAN NOTE SAMPLE",
+        "Meri monthly income 45000 hai",
+        "Mujhe 3 lakh ka loan chahiye",
+        "Business: kirana shop",
+        "GST registered: nahi",
+        "Existing EMI: 5000",
+    ],
 }
 
 
 def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     candidates = [
+        "/System/Library/Fonts/Supplemental/Devanagari Sangam MN.ttc",
+        "/System/Library/Fonts/Supplemental/DevanagariMT.ttc",
+        "/System/Library/Fonts/Supplemental/ITFDevanagari.ttc",
+        "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
         "/System/Library/Fonts/Supplemental/Arial.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
     ]

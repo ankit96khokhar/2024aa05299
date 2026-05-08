@@ -80,6 +80,8 @@ The OCR pipeline extracts clean text from PDFs and images using open-source engi
 ```bash
 python -m ocr.pipeline ocr/test_inputs/aadhaar_like.pdf -o ocr/outputs/aadhaar_like_pdf.txt
 python -m ocr.pipeline ocr/test_inputs/gst_document.png -o ocr/outputs/gst_document.txt
+python -m ocr.pipeline ocr/test_inputs/hindi_loan_note.png --language-preset hindi
+python -m ocr.pipeline ocr/test_inputs/hinglish_loan_note.png --language-preset hinglish
 ```
 
 See `ocr/README.md` for Tesseract and EasyOCR options.

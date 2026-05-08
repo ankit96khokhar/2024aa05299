@@ -21,6 +21,8 @@ This creates synthetic, non-sensitive examples under `ocr/test_inputs/`:
 - GST document
 - Bank statement
 - Handwritten-note style document
+- Hindi loan note
+- Hinglish loan note
 - Aadhaar-like PDF
 
 ## Run OCR
@@ -41,6 +43,36 @@ EasyOCR:
 
 ```bash
 python -m ocr.pipeline ocr/test_inputs/gst_document.png --engine easyocr --easyocr-language en
+```
+
+Hindi with Tesseract:
+
+```bash
+python -m ocr.pipeline ocr/test_inputs/hindi_loan_note.png --language-preset hindi
+```
+
+Hinglish with Tesseract:
+
+```bash
+python -m ocr.pipeline ocr/test_inputs/hinglish_loan_note.png --language-preset hinglish
+```
+
+Mixed Hindi and English with EasyOCR:
+
+```bash
+python -m ocr.pipeline ocr/test_inputs/hindi_loan_note.png --engine easyocr --language-preset mixed
+```
+
+Tesseract Hindi requires the `hin` trained data. On macOS:
+
+```bash
+brew install tesseract-lang
+```
+
+Check installed OCR languages:
+
+```bash
+tesseract --list-langs
 ```
 
 ## Output

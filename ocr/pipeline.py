@@ -11,6 +11,12 @@ from PIL import Image, ImageOps
 
 SUPPORTED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp"}
 SUPPORTED_PDF_EXTENSIONS = {".pdf"}
+LANGUAGE_PRESETS = {
+    "english": {"tesseract": "eng", "easyocr": ["en"]},
+    "hinglish": {"tesseract": "eng", "easyocr": ["en"]},
+    "hindi": {"tesseract": "hin+eng", "easyocr": ["hi", "en"]},
+    "mixed": {"tesseract": "hin+eng", "easyocr": ["hi", "en"]},
+}
 
 
 @dataclass
@@ -69,9 +75,30 @@ def iter_images(input_path: Path, dpi: int = 220) -> Iterable[tuple[int, Image.I
 
 
 def ocr_with_tesseract(image: Image.Image, language: str = "eng") -> str:
+    installed_languages = set(pytesseract.get_languages(config=""))
+    requested_languages = set(language.split("+"))
+    missing_languages = requested_languages - installed_languages
+    if missing_languages:
+        missing = ", ".join(sorted(missing_languages))
+        installed = ", ".join(sorted(installed_languages))
+        raise RuntimeError(
+            f"Tesseract language data missing: {missing}. Installed languages: {installed}. "
+            "Install Hindi support with `brew install tesseract-lang` on macOS, "
+            "or use EasyOCR with `--engine easyocr --language-preset hindi`."
+        )
+
     processed = preprocess_image(image)
     config = "--oem 3 --psm 6"
-    return pytesseract.image_to_string(processed, lang=language, config=config)
+    try:
+        return pytesseract.image_to_string(processed, lang=language, config=config)
+    except pytesseract.TesseractError as exc:
+        if "Failed loading language" in str(exc) or "Error opening data file" in str(exc):
+            raise RuntimeError(
+                f"Tesseract language '{language}' is not installed. "
+                "Install Hindi support with `brew install tesseract-lang` on macOS, "
+                "or use EasyOCR with `--engine easyocr --language-preset hindi`."
+            ) from exc
+        raise
 
 
 def ocr_with_easyocr(image: Image.Image, languages: list[str]) -> str:
@@ -82,23 +109,45 @@ def ocr_with_easyocr(image: Image.Image, languages: list[str]) -> str:
     return "\n".join(lines)
 
 
+def resolve_languages(
+    language_preset: str,
+    tesseract_language: str | None,
+    easyocr_languages: list[str] | None,
+) -> tuple[str, list[str]]:
+    preset = LANGUAGE_PRESETS[language_preset]
+    return (
+        tesseract_language or preset["tesseract"],
+        easyocr_languages or list(preset["easyocr"]),
+    )
+
+
 def extract_text(
     input_path: str | Path,
     engine: str = "tesseract",
-    tesseract_language: str = "eng",
+    language_preset: str = "english",
+    tesseract_language: str | None = None,
     easyocr_languages: list[str] | None = None,
     dpi: int = 220,
 ) -> OCRResult:
     path = Path(input_path)
     if not path.exists():
         raise FileNotFoundError(path)
+    if language_preset not in LANGUAGE_PRESETS:
+        allowed = ", ".join(sorted(LANGUAGE_PRESETS))
+        raise ValueError(f"language_preset must be one of: {allowed}")
+
+    resolved_tesseract_language, resolved_easyocr_languages = resolve_languages(
+        language_preset,
+        tesseract_language,
+        easyocr_languages,
+    )
 
     pages = []
     for page_number, image in iter_images(path, dpi=dpi):
         if engine == "tesseract":
-            raw_text = ocr_with_tesseract(image, language=tesseract_language)
+            raw_text = ocr_with_tesseract(image, language=resolved_tesseract_language)
         elif engine == "easyocr":
-            raw_text = ocr_with_easyocr(image, languages=easyocr_languages or ["en"])
+            raw_text = ocr_with_easyocr(image, languages=resolved_easyocr_languages)
         else:
             raise ValueError("engine must be 'tesseract' or 'easyocr'")
 
@@ -125,7 +174,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("input", help="Input PDF or image path")
     parser.add_argument("-o", "--output", help="Output text path")
     parser.add_argument("--engine", choices=["tesseract", "easyocr"], default="tesseract")
-    parser.add_argument("--tesseract-language", default="eng")
+    parser.add_argument(
+        "--language-preset",
+        choices=sorted(LANGUAGE_PRESETS),
+        default="english",
+        help="Language preset for OCR. Use hindi or mixed for Devanagari Hindi.",
+    )
+    parser.add_argument("--tesseract-language", help="Override Tesseract lang, e.g. eng, hin, hin+eng")
     parser.add_argument("--easyocr-language", action="append", dest="easyocr_languages")
     parser.add_argument("--dpi", type=int, default=220)
     return parser.parse_args()
@@ -133,13 +188,18 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    result = extract_text(
-        args.input,
-        engine=args.engine,
-        tesseract_language=args.tesseract_language,
-        easyocr_languages=args.easyocr_languages,
-        dpi=args.dpi,
-    )
+    try:
+        result = extract_text(
+            args.input,
+            engine=args.engine,
+            language_preset=args.language_preset,
+            tesseract_language=args.tesseract_language,
+            easyocr_languages=args.easyocr_languages,
+            dpi=args.dpi,
+        )
+    except RuntimeError as exc:
+        raise SystemExit(f"ERROR: {exc}") from None
+
     if args.output:
         write_text(result, args.output)
     else:
