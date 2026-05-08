@@ -86,6 +86,16 @@ python -m ocr.pipeline ocr/test_inputs/hinglish_loan_note.png --language-preset 
 
 See `ocr/README.md` for Tesseract and EasyOCR options.
 
+## Streamlit UI
+
+Run the local UI:
+
+```bash
+streamlit run frontend/streamlit_app.py
+```
+
+Open `http://localhost:8501` to use OCR upload/testing and browse the underwriting dataset.
+
 ## GitHub
 
 Repository:
