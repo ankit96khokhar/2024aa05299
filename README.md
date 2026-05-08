@@ -73,6 +73,17 @@ dvc status
 
 The current dataset contains 1000 JSONL samples across Hindi, Hinglish, and English, including clean text, noisy text, OCR-like mistakes, and intentionally missing fields.
 
+## OCR
+
+The OCR pipeline extracts clean text from PDFs and images using open-source engines:
+
+```bash
+python -m ocr.pipeline ocr/test_inputs/aadhaar_like.pdf -o ocr/outputs/aadhaar_like_pdf.txt
+python -m ocr.pipeline ocr/test_inputs/gst_document.png -o ocr/outputs/gst_document.txt
+```
+
+See `ocr/README.md` for Tesseract and EasyOCR options.
+
 ## GitHub
 
 Repository:

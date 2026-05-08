@@ -10,3 +10,4 @@ easyocr
 pandas
 scikit-learn
 dvc
+pymupdf
