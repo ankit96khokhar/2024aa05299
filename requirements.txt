@@ -1,0 +1,11 @@
+torch
+transformers
+sentence-transformers
+fastapi
+uvicorn
+langchain
+faiss-cpu
+pytesseract
+easyocr
+pandas
+scikit-learn
