@@ -9,3 +9,4 @@ pytesseract
 easyocr
 pandas
 scikit-learn
+dvc

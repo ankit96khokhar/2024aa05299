@@ -53,6 +53,25 @@ python -m pip install -r requirements.txt
 - easyocr
 - pandas
 - scikit-learn
+- dvc
+
+## Dataset Versioning
+
+The synthetic underwriting dataset is tracked with DVC:
+
+```bash
+python data/generate_underwriting_samples.py
+dvc add data/underwriting_samples.jsonl
+git add data/underwriting_samples.jsonl.dvc data/.gitignore
+```
+
+Check dataset state:
+
+```bash
+dvc status
+```
+
+The current dataset contains 1000 JSONL samples across Hindi, Hinglish, and English, including clean text, noisy text, OCR-like mistakes, and intentionally missing fields.
 
 ## GitHub
 
